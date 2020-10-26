@@ -1,4 +1,7 @@
-# ThreeJs_BB8
+# ThreeJs_BB8  
+> This is the homework of 	Introduction to Computer Graphics course.
+
+![](https://progress-bar.dev/90/?title=Coding) 
 
 連結: 
-[點我遊玩](https://axuy312.github.io/ThreeJs_BB8/)
+[Demo](https://axuy312.github.io/ThreeJs_BB8/)
