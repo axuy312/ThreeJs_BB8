@@ -27,7 +27,7 @@
 			var planes = [];
 
 			
-			var gravity = -9.8; // 向上為正
+			var gravity = -9.8*20; // 向上為正
 			var heading = 0;
 			var lastTime;
 			var previous_plane_state = [500, 500], current_plane_state = [0, 0];
@@ -40,21 +40,26 @@
 			//keytype controls
 			var keydown_w, keydown_a, keydown_s, keydown_d;
 			keydown_w = keydown_a = keydown_s = keydown_d = false;
+			var keydown_up, keydown_down, keydown_right, keydown_left;
+			keydown_up = keydown_down = keydown_right = keydown_left = false;
 			var velocity = [0,0];//x-z
-			var jump_init_velocity = 10;
+			var jump_init_velocity = 50;
 			var jump_velocity = 0;
 			var jump_cnt = 0;
 			var jump_max_cnt = 2;
+			var rotSpeed = 20;
+			var offsetX = 3000, offsetY = 3000, offsetZ = 3000;
+			var stop = false;
 
 			var gui, params;
 			var guiMe = function() {
 			  this.Heading = heading;
 			  this.Velocity = 270;
-			  this.addSpeed = 10;
+			  this.addSpeed = 20;
 			  this.rotSpeed = 20;
 			  this.Stop = function() {
-			   	velocity = 0;
-			  	this.Velocity = 0;
+				stop = !stop;
+				/*10*/
 			  };
 			  this.FollowMe = false;
 			};
@@ -69,8 +74,8 @@
 			function init() {
 				//console.log(distanceRadian(100,0));
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 10, 500000 );
-				camera.position.y = 3000;
-				camera.position.z = 3000;
+				camera.position.y = offsetX;
+				camera.position.z = offsetZ;
 
 				scene = new THREE.Scene();
 				
@@ -126,10 +131,16 @@
 
 				// let's have the mouse affect the view
 				controls = new THREE.OrbitControls( camera, renderer.domElement );
-
+				//controls.enableKeys(false);
+				controls.keys = {
+					LEFT: -1, //left arrow
+					UP: -1, // up arrow
+					RIGHT: -1, // right arrow
+					BOTTOM: -1 // down arrow
+				}
 				window.addEventListener( 'resize', onWindowResize, false );
 
-				// add some GUI
+				// add some GUI /*7*/
 				params = new guiMe();
 				gui = new dat.GUI();
 
@@ -143,6 +154,7 @@
 
 				window.onkeydown = function( event ) {
 			        var key = String.fromCharCode(event.keyCode);
+					//console.log(key);
 			        switch( key ) {
 			          case 'W':
 							keydown_w = true;
@@ -156,10 +168,22 @@
 			          case 'D':
 							keydown_d = true;
 							break;
+			          case '&':
+							keydown_up = true;
+							break;
+			          case '(':
+							keydown_down = true;
+							break;
+			          case '%':
+							keydown_left = true;
+							break;
+			          case '\'':
+							keydown_right = true;
+							break;
 			          case ' ':
 							if(jump_cnt < jump_max_cnt){
 								jump_cnt++;
-								jump_velocity += jump_init_velocity;
+								jump_velocity = jump_init_velocity;
 							}
 							break;
 			        }
@@ -179,11 +203,26 @@
 			          case 'D':
 							keydown_d = false;
 							break;
+			          case '&':
+							keydown_up = false;
+							break;
+			          case '(':
+							keydown_down = false;
+							break;
+			          case '%':
+							keydown_left = false;
+							break;
+			          case '\'':
+							keydown_right = false;
+							break;
+			          case '\'':
+							keydown_d = false;
+							break;
 			        }
 			    };
 			}
 
-			function onWindowResize() {
+			function onWindowResize() {/*3*/
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
 				renderer.setSize( window.innerWidth, window.innerHeight );
@@ -191,6 +230,13 @@
 
 			function animate() {
 				requestAnimationFrame( animate );
+				if(stop){
+					renderer.render( scene, camera );
+					// have the mouse update the view
+					controls.update();
+					return;
+				}
+
 
 				// Rotate the wheel
 				var deltaTime = Date.now() - lastTime;
@@ -201,7 +247,7 @@
 				}
 				
 				//forward
-				if(keydown_w) {
+				if(keydown_w || keydown_up) {/*3*/
 					if(velocity[1] > -maxVelocity){
 						velocity[1]-=10;
 					}
@@ -217,7 +263,7 @@
 						head_rate_pi = 0.5;
 					}
 				}
-				if(keydown_a){ 
+				if(keydown_a || keydown_left){ 
 					if(velocity[0] > -maxVelocity){
 						velocity[0]-=10;
 					}
@@ -233,7 +279,7 @@
 						head_rate_pi = 1;
 					}
 				}
-				if(keydown_s){
+				if(keydown_s || keydown_down){/*0*/
 					if(velocity[1] < maxVelocity){
 						velocity[1]+=10;
 					}
@@ -249,7 +295,7 @@
 						head_rate_pi = 1.5;
 					}
 				}
-				if(keydown_d){
+				if(keydown_d || keydown_right){
 					if(velocity[0] < maxVelocity){
 						velocity[0]+=10;
 					}
@@ -268,26 +314,34 @@
 				
 				
 				
-				//max velocity
-				if(velocity[0] > maxVelocity || velocity[0] < -maxVelocity){
-					velocity[0] -= (velocity[0] % maxVelocity);
-				}
-				if(velocity[1] > maxVelocity || velocity[1] < -maxVelocity){
-					velocity[1] -= (velocity[1] % maxVelocity);
-				}
 				
-				//slow down
-				if(velocity[1] < 0 && !keydown_w){
-					velocity[1]+=5;
+				if(maxVelocity != 0){/*2*/
+				
+					//max velocity
+					if(velocity[0] > maxVelocity || velocity[0] < -maxVelocity){
+						velocity[0] -= (velocity[0] % maxVelocity);
+					}
+					if(velocity[1] > maxVelocity || velocity[1] < -maxVelocity){
+						velocity[1] -= (velocity[1] % maxVelocity);
+					}
+					
+					//slow down
+					if(velocity[1] < 0 && !keydown_w && !keydown_up){
+						velocity[1]+=(maxVelocity / 100);
+					}
+					if(velocity[0] < 0 && !keydown_a && !keydown_left){
+						velocity[0]+=(maxVelocity / 100);
+					}
+					if(velocity[1] > 0 && !keydown_s && !keydown_down){
+						velocity[1]-=(maxVelocity / 100);
+					}
+					if(velocity[0] > 0 && !keydown_d && !keydown_right){
+						velocity[0]-=(maxVelocity / 100);
+					}
 				}
-				if(velocity[0] < 0 && !keydown_a){
-					velocity[0]+=5;
-				}
-				if(velocity[1] > 0 && !keydown_s){
-					velocity[1]-=5;
-				}
-				if(velocity[0] > 0 && !keydown_d){
-					velocity[0]-=5;
+				else{
+					velocity[0] = 0;
+					velocity[1] = 0;
 				}
 				
 				
@@ -295,9 +349,9 @@
 				var v3 = (new THREE.Vector3(velocity[0],0,velocity[1])).normalize();
 				var tmp_Velocity = Math.sqrt(velocity[0] * velocity[0] + velocity[1] * velocity[1]);
 				
-				//show control gui
-				params.Velocity = (tmp_Velocity > maxVelocity)?maxVelocity:tmp_Velocity;
 				
+				//show control gui
+				params.Velocity = (tmp_Velocity > maxVelocity )?maxVelocity:tmp_Velocity;
 				//bb.position += ;
 				body.position.x += (params.Velocity * v3.x / 50);
 				body.position.y += (jump_velocity);
@@ -339,19 +393,26 @@
 
 
 				
-				
-				//rolling
-				if(params.Velocity != 0){
-					body.rotateOnWorldAxis ( (new THREE.Vector3( velocity[1]/params.Velocity, 0, -velocity[0]/params.Velocity)).normalize() , deltaTime*params.Velocity/30000);
-				}
-				
 				head.rotation.y = head_rate_pi * Math.PI;
 				if (head_rate_pi < 0){
 					head_rate_pi += 2;
 				}
 				heading = head_rate_pi * 180;
 				params.Heading = heading;
-
+				maxVelocity = params.addSpeed * 25;
+				rotSpeed = params.rotSpeed;
+				//rolling
+				if(params.Velocity != 0){
+					body.rotateOnWorldAxis ( (new THREE.Vector3( velocity[1]/params.Velocity, 0, -velocity[0]/params.Velocity)).normalize() , deltaTime*params.Velocity * rotSpeed/500000);
+				}
+				
+				if(params.FollowMe){
+					camera.position.x = body.position.x;
+					camera.position.z = body.position.z + offsetZ;
+					controls.target.set( body.position.x, 0, body.position.z );
+				}
+				
+				
 				renderer.render( scene, camera );
 				// have the mouse update the view
 				controls.update();
