@@ -1,8 +1,6 @@
 > This is the homework of 	Introduction to Computer Graphics course.
 
 
-連結: 
-[Demo](https://axuy312.github.io/ThreeJs_BB8/)
 
 --------
 
@@ -13,3 +11,9 @@
     視野：滑鼠滾輪
 
 --------
+### Demo:  
+連結: 
+[Demo](https://axuy312.github.io/ThreeJs_BB8/)  
+
+<img align="center" height="800" width="600" src="https://github.com/axuy312/ThreeJs_BB8/tree/main/Description/demo_1.png" />
+<img align="center" height="800" width="600" src="https://github.com/axuy312/ThreeJs_BB8/tree/main/Description/demo_2.png" />
