@@ -16,7 +16,7 @@
 [Demo](https://axuy312.github.io/ThreeJs_BB8/)  
 
 <h2><details>
- <summary> </summary>
+ <summary>畫面</summary>
     <img align="center" height="500" width="800" src="https://github.com/axuy312/ThreeJs_BB8/blob/main/Description/demo_1.png" />
     <img align="center" height="500" width="800" src="https://github.com/axuy312/ThreeJs_BB8/blob/main/Description/demo_2.png" />
 </details></h3>
